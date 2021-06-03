@@ -1,0 +1,18 @@
+version: '3.7'
+services:
+  marketcap:
+    image: mongo:4.4
+    ports:
+         - 27017:27017
+    environment:
+         - MONGO_INITDB_DATABASE=marketcap
+    volumes:
+         - ./service/docker-entrypoint-initdb.d:/docker-entrypoint-initdb.d:ro
+    network_mode: "host"
+  marketcap:
+    build:
+      context: service
+    image: marketcap
+    ports:
+      - 9999:9999
+    network_mode: "host"
