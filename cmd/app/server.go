@@ -42,14 +42,6 @@ func (s*Server) recalculate(writer http.ResponseWriter, request *http.Request){
 		log.Println(err)
 		writer.WriteHeader(http.StatusInternalServerError)
 	}
-	sum := 0.0
-	for _, i := range res.Values{
-		sum += i
-	}
-	log.Printf("The sum is: %f", sum)
-	log.Printf("The len is: %d", len(res.Values))
-
-
 	body, err := json.Marshal(res)
 	if err != nil {
 		log.Print(err)

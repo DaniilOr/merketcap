@@ -182,9 +182,6 @@ func (s*Service) Recalculate(ctx context.Context, rebalancingPeriod int64, recon
 			if find(availableCoins, j.Symbol){
 				coinsMarket[j.Symbol] = append(coinsMarket[j.Symbol], j.Cap)
 			}
-			if j.Symbol == "ETH"{
-				log.Printf("%v %f", i, j.Cap)
-			}
 		}
 	}
 	var marketCaps = make(map[string]float64)
@@ -235,7 +232,6 @@ func sqrSum(ps []float64) float64{
 	for _, i := range ps{
 		sum += math.Sqrt(i)
 	}
-	log.Printf("SQRT SUM: %f", sum)
 	return sum
 }
 
