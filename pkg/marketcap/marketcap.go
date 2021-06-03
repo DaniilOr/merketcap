@@ -3,7 +3,7 @@ package marketcap
 import (
 	"context"
 	"errors"
-	dtos2 "github.com/DaniilOr/marketcap/service/cmd/dtos"
+	dtos2 "github.com/DaniilOr/marketcap/cmd/dtos"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"

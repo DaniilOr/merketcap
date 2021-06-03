@@ -8,10 +8,10 @@ services:
          - MONGO_INITDB_DATABASE=marketcap
     volumes:
          - ./service/docker-entrypoint-initdb.d:/docker-entrypoint-initdb.d:ro
-    network_mode: "host"
+    netwsork_mode: "host"
   marketcap:
     build:
-      context: service
+      context: .
     image: marketcap
     ports:
       - 9999:9999

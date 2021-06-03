@@ -2,7 +2,7 @@ package app
 
 import (
 	"encoding/json"
-	marketcap2 "github.com/DaniilOr/marketcap/service/pkg/marketcap"
+	marketcap2 "github.com/DaniilOr/marketcap/pkg/marketcap"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
 	"log"

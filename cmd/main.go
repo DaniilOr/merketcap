@@ -2,8 +2,8 @@ package main
 
 import (
 	"context"
-	app2 "github.com/DaniilOr/marketcap/service/cmd/app"
-	marketcap2 "github.com/DaniilOr/marketcap/service/pkg/marketcap"
+	app2 "github.com/DaniilOr/marketcap/cmd/app"
+	marketcap2 "github.com/DaniilOr/marketcap/pkg/marketcap"
 	"github.com/go-chi/chi/v5"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
