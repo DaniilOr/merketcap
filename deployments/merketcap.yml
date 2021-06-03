@@ -1,0 +1,35 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: marketcap
+spec:
+  selector:
+    matchLabels:
+      app: marketcap
+  replicas: 5
+  template:
+    metadata:
+      labels:
+        app: marketcap
+    spec:
+      containers:
+        - name: replica
+          image: docker.pkg.github.com/daniilor/merketcap/marketcap:main
+          ports:
+            - containerPort: 9999
+      imagePullSecrets:
+        - name: github-packages
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: marketcap
+  labels:
+    app: marketcap
+spec:
+  type: LoadBalancer
+  ports:
+    - port: 9999
+  selector:
+    app: replica
+---
