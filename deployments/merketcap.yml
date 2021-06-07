@@ -31,5 +31,5 @@ spec:
   ports:
     - port: 9999
   selector:
-    app: replica
+    app: marketcap
 ---

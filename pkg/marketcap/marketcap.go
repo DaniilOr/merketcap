@@ -4,6 +4,8 @@ import (
 	"context"
 	"errors"
 	dtos2 "github.com/DaniilOr/marketcap/cmd/dtos"
+	"github.com/DaniilOr/marketcap/pkg/updater"
+	"github.com/robfig/cron/v3"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
@@ -17,13 +19,14 @@ var errNoDates = errors.New("array of dates is empty")
 type Service struct{
 	db *mongo.Database
 	defaultStableCoins []string
+	uniqueList []string
 
 }
 type timeSlice []time.Time
 
 func CreateService(db *mongo.Database) *Service {
 	var def = []string{"AMPL", "DGX", "DAI", "USDT", "USDC", "PAX",  "TUSD", "DAI", "USDK", "SAI", "EURS", "BITCNY", "GUSD", "SUSD", "USDS", "BGBP", "NUSD", "USNBT", "CONST", "BITUSD", "PESO", "EBASE", "HUSD",  "THKD", "WBTC"}
-	return &Service{db: db, defaultStableCoins: def}
+	return &Service{db: db, defaultStableCoins: def, uniqueList: updater.GetUniqueListData()}
 }
 
 
@@ -102,7 +105,7 @@ func (s*Service) getMarketByDate(ctx context.Context, date string, period int64)
 	return &mcs, nil
 
 }
-func (s*Service) Recalculate(ctx context.Context, rebalancingPeriod int64, reconstitutionPeriod int64, startDate string, stableCoins []string, count int64, coins []string, reconstitute bool)(*dtos2.RebalancingResult, error){
+func (s*Service) Recalculate(ctx context.Context, rebalancingPeriod int64, reconstitutionPeriod int64, startDate string, stableCoins []string, count int64, coins []string, reconstitute bool)(*dtos2.Response, error){
 	if stableCoins == nil{
 		stableCoins = s.defaultStableCoins
 	}
@@ -122,18 +125,12 @@ func (s*Service) Recalculate(ctx context.Context, rebalancingPeriod int64, recon
 		log.Println(err)
 		return nil, err
 	}
-	uniqueList, err := s.GetUniqueList(ctx)
-	if err != nil{
-		log.Println(err)
-		return nil, err
-	}
-	uniqueList = append(uniqueList, "BTCBTC")
 	topCaps := make(map[time.Time][]dtos2.PriceSymbolPair)
 	var arrayOfDates timeSlice
 	var used = make(map[string]bool)
 	for _, i :=  range *res {
 		for j := range i.Symbol{
-				if !find(stableCoins, i.Symbol[j]) && findSymbol(uniqueList, i.Symbol[j]) {
+				if !find(stableCoins, i.Symbol[j]) && find(s.uniqueList, i.Symbol[j]) {
 					pair := dtos2.PriceSymbolPair{Symbol: i.Symbol[j], Cap: i.USD_marketcaps[i.Symbol[j]]}
 					realDate, err := time.Parse("2006-01-02", i.Date)
 					if err != nil{
@@ -197,17 +194,10 @@ func (s*Service) Recalculate(ctx context.Context, rebalancingPeriod int64, recon
 		marketCaps[key] = filteredMarketCaps.Values[i]
 	}
 	functionResult := averageWeight(marketCaps)
-	return  &functionResult, nil
+	resp := s.wrapResponse(functionResult.Keys, functionResult.Values)
+	return  &resp, nil
 }
 
-func findSymbol(arr []string, target string) bool{
-	for _, i:=range arr{
-		if i[:len(i) - 3] == target{
-			return true
-		}
-	}
-	return false
-}
 
 func find(arr []string, target string) bool{
 	for _, i:=range arr{
@@ -330,4 +320,55 @@ func intersectArrays(a, b []string) (c []string) {
 		}
 	}
 	return c
+}
+
+func (s*Service) wrapResponse(keys []string, vals []float64) dtos2.Response {
+	var resp dtos2.Response
+	resp.RecalculatedWeights = make(map[string]float64, 0)
+	for i, _ := range keys{
+		resp.RecalculatedWeights[keys[i]] = vals[i]
+	}
+	return resp
+}
+
+func (s*Service) updateAll(){
+	s.uniqueList = updater.GetUniqueListData()
+	MCS := updater.GetMarketcapData()
+	count, err := s.db.Collection("marketcap").CountDocuments(context.Background(), bson.M{"date": MCS.Date})
+	if err != nil{
+		log.Println(err)
+		return
+	}
+	log.Println(count)
+	if count == 0{
+		obj, err := s.db.Collection("marketcap").InsertOne(context.Background(), MCS)
+		if err != nil{
+			log.Println(err)
+		} else {
+			log.Println(obj.InsertedID)
+		}
+	} else {
+		id, err := s.db.Collection("marketcap").UpdateOne(context.Background(),
+			bson.M{"date": bson.M{"$eq": MCS.Date }},
+			bson.D{
+				{"$set", bson.D{{"symbols", MCS.Symbol}}},
+				{"$set", bson.D{{"USD_marketcaps", MCS.USD_marketcaps}}},
+			},)
+		if err != nil{
+			log.Println(err)
+		} else {
+			log.Println(id)
+		}
+	}
+}
+
+func (s *Service) StartScrapping() error{
+	c := cron.New()
+	_, err := c.AddFunc("@every 1h", s.updateAll)
+	if err != nil{
+		log.Println(err)
+		return err
+	}
+	c.Start()
+	return nil
 }

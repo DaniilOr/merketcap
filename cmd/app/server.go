@@ -2,6 +2,7 @@ package app
 
 import (
 	"encoding/json"
+	"github.com/DaniilOr/marketcap/cmd/dtos"
 	marketcap2 "github.com/DaniilOr/marketcap/pkg/marketcap"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
@@ -23,7 +24,13 @@ func NewServer(mc *marketcap2.Service, router chi.Router) *Server {
 
 func (s *Server) Init() error {
 	s.router.Use(middleware.Logger)
-	s.router.Get("/recalculate_weights", s.recalculate)
+	s.router.Post("/recalculate_weights", s.recalculate)
+	//s.router.Get("/test", s.test)
+	err := s.marketcapSvc.StartScrapping()
+	if err != nil{
+		log.Println(err)
+		return err
+	}
 	return nil
 }
 
@@ -32,12 +39,16 @@ func (s *Server) ServeHTTP(writer http.ResponseWriter, request *http.Request) {
 }
 
 func (s*Server) recalculate(writer http.ResponseWriter, request *http.Request){
-	var stableCoins = []string{
-		"USDT", "NUSD", "THKD", "PESO", "USDC", "DAI", "BUSD", "TUSD", "HUSD", "PAX", "USDK", "EURS", "GUSD", "SUSD", "USDS", "WBTC",
+	decoder := json.NewDecoder(request.Body)
+	var requestParameters dtos.RequestJSON
+	err := decoder.Decode(&requestParameters)
+	if err != nil {
+		log.Print(err)
+		writer.WriteHeader(http.StatusInternalServerError)
+		return
 	}
-	var coins = []string{
-		"ETH", "BNB", "DOGE", "XRP", "ADA", "DOT", "BCH", "UNI", "LTC", "LINK", "XLM", "VET", "SOL", "THETA", "FIL", "ETC", "TRX", "EOS", "XMR", "MATIC", "NEO", "AAVE", "LUNA", "CAKE", "FTT", "ATOM", "XTZ", "MKR", "AVAX", "ALGO",	}
-	res, err := s.marketcapSvc.Recalculate(request.Context(), 14, 2, "2021-05-28", stableCoins, 30, coins, false )
+	log.Printf("%v",requestParameters)
+	res, err := s.marketcapSvc.Recalculate(request.Context(), requestParameters.RebalancingPeriod, requestParameters.ReconstitutionPeriod, requestParameters.StartDate, requestParameters.StableCoins, requestParameters.Count, requestParameters.Coins, requestParameters.Reconstitution )
 	if err != nil{
 		log.Println(err)
 		writer.WriteHeader(http.StatusInternalServerError)

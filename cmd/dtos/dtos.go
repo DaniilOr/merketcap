@@ -21,3 +21,17 @@ type RebalancingResult struct {
 	Keys []string `json:"keys"`
 	Values []float64 `json:"values"`
 }
+
+type RequestJSON struct{
+	StableCoins []string `json:"stable_coins"`
+	Coins []string `json:"coins"`
+	RebalancingPeriod int64 `json:"rebalancing_period"`
+	ReconstitutionPeriod int64 `json:"reconstitution_period"`
+	StartDate string `json:"start_date"`
+	Count int64 `json:"count"`
+	Reconstitution bool `json:"reconstitution"`
+}
+
+type Response struct {
+	RecalculatedWeights map[string]float64 `json:"recalculated_weights"`
+}
