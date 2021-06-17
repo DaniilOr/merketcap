@@ -1,20 +1,15 @@
 POST http://localhost:9999/recalculate_weights
 Content-Type: application/json
 
-{"rebalancing_period": 21, "reconstitution_period": 2, "start_date": "2021-05-28", "stable_coins": ["USDT", "NUSD", "THKD", "PESO", "USDC", "DAI", "BUSD", "TUSD", "HUSD", "PAX", "USDK", "EURS", "GUSD", "SUSD", "USDS", "WBTC", "BTC"], "count": 30, "coins": ["ETH", "BNB", "DOGE", "XRP", "ADA", "DOT", "BCH", "UNI", "LTC", "LINK", "XLM", "VET", "SOL", "THETA", "FIL", "ETC", "TRX", "EOS", "XMR", "MATIC", "NEO", "AAVE", "LUNA", "CAKE", "FTT", "ATOM", "XTZ", "MKR", "AVAX", "ALGO"], "reconstitution": true}
-> {%
-client.test("Request executed successfully", function() {
-  client.assert(response.status === 200, "Response status is not 200");
-  client.assert(response.contentType.mimeType === "application/json", "Expected 'application/json' but received '" + response.contentType.mimeType + "'");
-  client.global.set("token", response.body.token);
-});
-%}
-###
+{"rebalancing_period": 21,
+  "reconstitution_period": 2,
+  "start_date": "2021-05-28",
+  "stable_coins": ["USDT", "NUSD", "THKD", "PESO", "USDC", "DAI", "BUSD", "TUSD", "HUSD", "PAX", "USDK", "EURS", "GUSD", "SUSD", "USDS", "WBTC", "BTC"],
+  "count": 30,
+  "coins": ["ETH", "BNB", "DOGE", "XRP", "ADA", "DOT", "BCH", "UNI", "LTC", "LINK", "XLM", "VET", "SOL", "THETA", "FIL", "ETC", "TRX", "EOS", "XMR", "MATIC", "NEO", "AAVE", "LUNA", "CAKE", "FTT", "ATOM", "XTZ", "MKR", "AVAX", "ALGO"],
+  "reconstitution": true
+}
 
-GET http://localhost:9999/test
-Content-Type: application/json
-
-{"rebalancing_period": 21, "reconstitution_period": 2, "start_date": "2021-05-28", "stable_coins": ["USDT", "NUSD", "THKD", "PESO", "USDC", "DAI", "BUSD", "TUSD", "HUSD", "PAX", "USDK", "EURS", "GUSD", "SUSD", "USDS", "WBTC", "BTC"], "count": 30, "coins": ["ETH", "BNB", "DOGE", "XRP", "ADA", "DOT", "BCH", "UNI", "LTC", "LINK", "XLM", "VET", "SOL", "THETA", "FIL", "ETC", "TRX", "EOS", "XMR", "MATIC", "NEO", "AAVE", "LUNA", "CAKE", "FTT", "ATOM", "XTZ", "MKR", "AVAX", "ALGO"], "reconstitution": true}
 > {%
 client.test("Request executed successfully", function() {
   client.assert(response.status === 200, "Response status is not 200");

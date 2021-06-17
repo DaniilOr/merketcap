@@ -106,7 +106,7 @@ func (s*Service) getMarketByDate(ctx context.Context, date string, period int64)
 
 }
 func (s*Service) Recalculate(ctx context.Context, rebalancingPeriod int64, reconstitutionPeriod int64, startDate string, stableCoins []string, count int64, coins []string, reconstitute bool)(*dtos2.Response, error){
-	if stableCoins == nil{
+	if stableCoins == nil || len(stableCoins) == 0{
 		stableCoins = s.defaultStableCoins
 	}
 	var periodDays int64 = rebalancingPeriod
@@ -165,6 +165,9 @@ func (s*Service) Recalculate(ctx context.Context, rebalancingPeriod int64, recon
 	var availableCoins []string
 	for _, i := range current{
 		availableCoins = append(availableCoins, i.Symbol)
+		if i.Symbol == "SRM"{
+			log.Println("SRM is available")
+		}
 	}
 	if (!reconstitute) && (int(count) <= len(coins)){
 		availableCoins = intersectArrays(availableCoins, coins)
@@ -185,10 +188,39 @@ func (s*Service) Recalculate(ctx context.Context, rebalancingPeriod int64, recon
 	for key, val := range coinsMarket{
 		marketCaps[key] = wma(val)
 	}
+	var prev float64
+	for key, val := range marketCaps{
+
+		if key == "SRM"{
+			log.Printf("%s: %f", key, val)
+		}
+		if key == "BAKE"{
+			log.Printf("%s: %f", key, val)
+		}
+	}
 	filteredMarketCaps := transformerWrapper(marketCaps)
+	for i := range filteredMarketCaps.Values{
+		if prev > filteredMarketCaps.Values[i]{
+			log.Println("Different order", prev, filteredMarketCaps.Values[i])
+
+		} else {
+			prev = filteredMarketCaps.Values[i]
+		}
+		if filteredMarketCaps.Keys[i] == "SRM"{
+			log.Println(i, filteredMarketCaps.Values[i])
+		}
+	}
+	log.Println(filteredMarketCaps.Values[0], filteredMarketCaps.Values[len(filteredMarketCaps.Values) - 1])
+	log.Println(len(filteredMarketCaps.Keys),int64(len(filteredMarketCaps.Keys))-count)
+
 	filteredMarketCaps.Values = filteredMarketCaps.Values[int64(len(filteredMarketCaps.Values))-count:]
 	filteredMarketCaps.Keys = filteredMarketCaps.Keys[int64(len(filteredMarketCaps.Keys))-count:]
-	println(len(filteredMarketCaps.Keys))
+	log.Println(len(filteredMarketCaps.Keys))
+	for i := range filteredMarketCaps.Values{
+		if filteredMarketCaps.Keys[i] == "SRM"{
+			log.Println(i, filteredMarketCaps.Values[i])
+		}
+	}
 	marketCaps = make(map[string]float64)
 	for i, key := range filteredMarketCaps.Keys{
 		marketCaps[key] = filteredMarketCaps.Values[i]

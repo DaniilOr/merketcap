@@ -40,6 +40,7 @@ func (s *Server) ServeHTTP(writer http.ResponseWriter, request *http.Request) {
 
 func (s*Server) recalculate(writer http.ResponseWriter, request *http.Request){
 	decoder := json.NewDecoder(request.Body)
+	log.Println(decoder)
 	var requestParameters dtos.RequestJSON
 	err := decoder.Decode(&requestParameters)
 	if err != nil {
